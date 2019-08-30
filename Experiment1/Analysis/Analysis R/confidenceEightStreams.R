@@ -32,6 +32,21 @@ interactionModel <- glmer(conf~abs(SPE)*condition+(1|ID), data = allData, family
 
 x <- anova(interceptModel, SPEModel,conditionModel, mainEffectsModel, interactionModel)
 
-x
 
 summary(mainEffectsModel)
+
+countPlot <-  allData %>% 
+  mutate(condition = ifelse(condition == 'twoStreams', 'Two Streams', 'Eight Streams')) %>%
+  mutate(condition = ordered(condition, levels = c('Two Streams', 'Eight Streams'))) %>%
+  group_by(ID, condition) %>% 
+  summarise(Sure = sum(conf == 'sure'), 
+            Unsure = sum(conf == 'unsure')) %>% 
+  melt() %>%
+  ggplot(aes(x = condition, y = value))+
+  geom_point(aes(colour = variable))+
+  stat_summary(fun.y = mean, geom='point', aes(colour = variable), size = 4)+
+  stat_summary(fun.data = mean_se, geom = 'errorbar', aes(group = variable), width = .2)+
+  theme_apa(base_size = 25)+
+  labs(x = 'Condition', y = 'Count', colour = 'Confidence')
+
+countPlot
