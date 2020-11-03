@@ -4,6 +4,4 @@
 
 * Experiments 1, 2, and 3 have their own READMEs
 
-* Monitoring Simulations/ contains the simulation study for monitoring K of N streams.
-
 * Contact me at charlie dot ludowici at gmail dot com if you have any questions
