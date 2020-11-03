@@ -2,14 +2,16 @@
 ###Date: 2019-04-25 14:18:37###
 ###Author: Charlie Ludowici####
 ###############################
-#Eighteen Streams Gamma fitting
+#Eight Streams Gamma fitting
+setwd('~/gitCode/RSVPDynamics/')
+
 library(ggplot2)
 library(dplyr)
 library(magrittr)
 library(reshape2)
 library(purrr)
 library(BayesFactor)
-devtools::load_all('~/gitCode/mixRSVP/')
+devtools::load_all('mixRSVP/')
 
 rm(list=ls())
 
@@ -62,9 +64,9 @@ analyses <- function(params, modelKind = NULL, bestFitting = FALSE, nIterations 
   
   efficacyPlot = ggplot(params, aes(x=condition, y = efficacy))+
     #geom_violin(position = position_dodge(.9))+
-    geom_point(alpha=1, colour = '#dca951', size = 4)+
+    geom_point(alpha=1, colour = '#ffa951', size = 4)+
     geom_line(aes(group = participant),alpha = .3)+
-    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9), size = 4, colour = '#23375f')+
+    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9), shape = 23, size = 4, fill = '#23375f')+
     stat_summary(geom= 'errorbar', fun.data = mean_se, position = position_dodge(.9), width = .2, colour = '#23375f')+
     labs(x = "Number of Streams", y = "Efficacy")+
     scale_x_discrete(breaks = c('twoStreams', 'eightStreams'), labels = c('2', '8'))+
@@ -98,13 +100,14 @@ analyses <- function(params, modelKind = NULL, bestFitting = FALSE, nIterations 
   
   latencyPlot <- ggplot(params, aes(x=condition, y = latency))+
     #geom_violin(position = position_dodge(.9))+
-    geom_point(alpha=1, colour = '#dca951', size = 4)+
+    geom_point(alpha=1, colour = '#ffa951', size = 4)+
     geom_line(aes(group = participant),alpha = .3)+
-    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9),size = 4, colour = '#23375f')+
+    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9), shape = 23, size = 4, fill = '#23375f')+
     stat_summary(geom= 'errorbar', fun.data = mean_se, position = position_dodge(.9), width = .2, colour = '#23375f')+
     scale_colour_brewer(palette = 'Spectral')+
     labs(x = 'Number of Streams', y = 'Latency (ms)')+
     scale_x_discrete(breaks = c('twoStreams', 'eightStreams'), labels = c('2', '8'))+
+    scale_y_continuous(limits = c(0, 300), breaks = seq(0,300,50))+
     theme_apa()
 
   
@@ -133,13 +136,14 @@ analyses <- function(params, modelKind = NULL, bestFitting = FALSE, nIterations 
   
   precisionPlot <- ggplot(params, aes(x=condition, y = precision))+
     #geom_violin(position = position_dodge(.9))+
-    geom_point(alpha=1, colour = '#dca951', size = 4)+
+    geom_point(alpha=1, colour = '#ffa951', size = 4)+
     geom_line(aes(group = participant),alpha = .3)+
-    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9),  size = 4, colour = '#23375f')+
+    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9), shape = 23, size = 4, fill = '#23375f')+
     stat_summary(geom= 'errorbar', fun.data = mean_se, position = position_dodge(.9), width = .2, colour = '#23375f')+
     scale_colour_brewer(palette = 'Spectral')+
     labs(x = 'Number of Streams', y = 'Precision (ms)')+
     scale_x_discrete(breaks = c('twoStreams', 'eightStreams'), labels = c('2', '8'))+
+    scale_y_continuous(limits = c(0,230), breaks = seq(0, 200, 50))+
     theme_apa()
 
   results[['Precision']] <- list(
@@ -154,9 +158,7 @@ plots <- TRUE
 
 timeStamp <- Sys.time() %>% strftime(format = '%d-%m-%Y_%H-%M')
 
-setwd('~/gitCode/nStream/')
-
-allData <- read.table('Analysis/allErrors.txt', sep = '\t', stringsAsFactors = F, header = T)
+allData <- read.table('Experiment1/Analysis/allErrors.txt', sep = '\t', stringsAsFactors = F, header = T)
 
 allData %<>% rename(SPE = error, targetSP=cuePos0)
 
@@ -197,7 +199,7 @@ nObs <- allData %>%
 
 nParams <- c('Gamma' = 3, 'Normal' = 3)
 
-paramFiles <- list.files(path = 'Analysis/Gamma Fits',
+paramFiles <- list.files(path = 'Experiment1/Analysis/Gamma Fits',
                          pattern = 'paramsDF8.*csv',
                          full.name = T)
 
@@ -371,12 +373,12 @@ if(plots){
     
     thisPlot <- ggplot(theseObservations, aes(x = SPE))+
       geom_histogram(binwidth = 1)+
-      geom_line(data = theseDensities, aes(x = SPE, y = density*100, colour = model)) +
+      geom_line(data = theseDensities, aes(x = SPE, y = density*100, linetype = model)) +
       labs(title = paste0('Participant: ', thisIDNoSpace))+
       geom_vline(xintercept = 0, linetype = 'dashed')+
       facet_grid(cols = vars(condition))
     
-    ggsave(filename = paste0('Analysis/Gamma Fits/GammaPlots/8/',thisIDNoSpace,'.png'),
+    ggsave(filename = paste0('Experiment1/Analysis/Gamma Fits/GammaPlots/8/',thisIDNoSpace,'.png'),
            plot = thisPlot, width = 29.21, height = 12.09, units = 'cm'
     )
   } 
@@ -384,7 +386,7 @@ if(plots){
 
 
 
- #################################
+#################################
 ###Latencies relative to onset###
 #################################
 
@@ -401,7 +403,7 @@ gammaAnalysis <- analyses(paramsDF,modelKind = 'Gamma')
 
 normalAnalysis <- analyses(paramsDF,modelKind = 'Normal')
 
- normalEfficacyLabel <- normalAnalysis$Efficacy$BF %>% as.vector %>% round(2) %>% paste0('BF[10]==', .)
+normalEfficacyLabel <- normalAnalysis$Efficacy$BF %>% as.vector %>% round(2) %>% paste0('BF[10]==', .)
 # 
 # # normalAnalysis$Efficacy$Plot <- normalAnalysis$Efficacy$Plot +
 # #   annotate(label = normalEfficacyLabel, geom = 'text', x = 1, y = .25, parse = T,size = 10)+
@@ -423,9 +425,9 @@ normalAnalysis <- analyses(paramsDF,modelKind = 'Normal')
 plotHeight <- 19*(9/16)
 plotWidth <- 19
 
-ggsave('~/efficacyEightStream.png', plot = normalAnalysis$Efficacy$Plot,height = plotHeight, width = plotWidth, units = 'cm')
-ggsave('~/latencyEightStream.png', plot = normalAnalysis$Latency$Plot,height = plotHeight, width = plotWidth, units = 'cm')
-ggsave('~/precisionEightStream.png', plot = normalAnalysis$Precision$Plot,height = plotHeight, width = plotWidth, units = 'cm')
+ggsave('Experiment1/Analysis/Gamma Fits/efficacyEightStream.png', plot = normalAnalysis$Efficacy$Plot,height = plotHeight, width = plotWidth, units = 'cm')
+ggsave('Experiment1/Analysis/Gamma Fits/latencyEightStream.png', plot = normalAnalysis$Latency$Plot,height = plotHeight, width = plotWidth, units = 'cm')
+ggsave('Experiment1/Analysis/Gamma Fits/precisionEightStream.png', plot = normalAnalysis$Precision$Plot,height = plotHeight, width = plotWidth, units = 'cm')
 
 
 bestFittingAnalysis <- analyses(paramsDF, bestFitting = T)
@@ -437,8 +439,8 @@ randPartData <- allData %>% filter(ID %in% randPart) %>% mutate(condition = orde
 randPartDensities <- densities %>% filter(ID %in% randPart)%>% mutate(condition = ordered(condition, levels = c('twoStreams', 'eightStreams'),labels = c('Two Streams', 'Eight Streams')))
 
 randomParticipantPlot <- ggplot()+
-  geom_histogram(data = randPartData, aes(x = SPE), binwidth = 1)+
-  geom_line(data = randPartDensities, aes(x = SPE, y = density*100, colour = model), size = 1)+
+  geom_histogram(data = randPartData, aes(x = SPE), binwidth = 1, size = .5, fill = '#FFFFFF', colour = 'black')+
+  geom_line(data = randPartDensities, aes(x = SPE, y = density*100, linetype = model), size = 1)+
   facet_grid(cols = vars(condition), rows = vars(ID))+
   geom_vline(xintercept = 0, linetype = 'dashed')+
   labs(y = 'Count')+
@@ -446,4 +448,24 @@ randomParticipantPlot <- ggplot()+
 
 randomParticipantPlot
 
-ggsave('~/gitCode/nStream/manuscripts_etc/Manuscript Figures/randomParticipantPlot8.png', randomParticipantPlot, width = 16, height = 9, units = 'in')
+ggsave('Experiment1/Analysis/randomParticipantPlot8.png', randomParticipantPlot, width = 16, height = 9, units = 'in')
+
+
+
+allResponses = allData %>% 
+  filter(!fixationReject) %>%
+  mutate(condition = ifelse(condition == 'eightStreams', 'Eight Streams', 'Two Streams')) %>%
+  mutate(condition = ordered(condition, levels = c('Two Streams', 'Eight Streams'))) %>%
+  ggplot(aes(x = SPE))+
+  geom_histogram(aes(x = SPE), binwidth = 1, size = 1, fill = '#FFFFFF', colour = 'black')+
+  facet_grid(cols = vars(condition))+
+  geom_vline(xintercept = 0, linetype = 'dashed')+
+  labs(y = 'Count')+
+  theme_apa(base_size = 30)
+
+allResponses
+
+ggsave('Experiment1/Analysis/aggregateHistograms.png', allResponses,width = 16, height = 9, units = 'in')
+
+
+

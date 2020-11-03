@@ -9,8 +9,6 @@ rm(list=ls())
 
 timeStamp <- Sys.time() %>% strftime(format = '%d-%m-%Y_%H-%M')
 
-setwd('~/gitCode/nStream/')
-
 allData <- read.table('Analysis/allErrors.txt', sep = '\t', stringsAsFactors = F, header = T)
 
 allData %<>% rename(SPE = error, targetSP=cuePos0)
@@ -43,8 +41,9 @@ countPlot <-  allData %>%
             Unsure = sum(conf == 'unsure')) %>% 
   melt() %>%
   ggplot(aes(x = condition, y = value))+
-  geom_point(aes(colour = variable))+
-  stat_summary(fun.y = mean, geom='point', aes(colour = variable), size = 4)+
+  geom_point(aes(colour = variable), size = 4, alpha = .6)+
+  geom_line(aes(group = interaction(ID, variable)), alpha = .6)+
+  stat_summary(fun.y = mean, geom='point', aes(colour = variable), size = 7)+
   stat_summary(fun.data = mean_se, geom = 'errorbar', aes(group = variable), width = .2)+
   theme_apa(base_size = 25)+
   labs(x = 'Condition', y = 'Count', colour = 'Confidence')

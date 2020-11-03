@@ -3,6 +3,8 @@
 ###Author: Charlie Ludowici####
 ###############################
 #Eighteen Streams Gamma fitting
+setwd('~/gitCode/RSVPDynamics/')
+
 library(ggplot2)
 library(dplyr)
 library(magrittr)
@@ -16,9 +18,9 @@ rm(list=ls())
 
 timeStamp <- Sys.time() %>% strftime(format = '%d-%m-%Y_%H-%M')
 
-setwd('~/gitCode/nStream/')
 
-allData <- read.csv('Analysis/allErrors18Streams.txt', stringsAsFactors = F)
+
+allData <- read.csv('Experiment2/Analysis/allErrors18Streams.txt', stringsAsFactors = F)
 
 plots = F
 
@@ -28,7 +30,7 @@ conditions <-  allData %>% pull(condition) %>% unique()
 nReplications = 20
 numLettersInStream <- 24
 
-paramFiles <- list.files('Analysis/Gamma Fits/', pattern = 'params.*18', full.names = T)
+paramFiles <- list.files('Experiment2/Analysis/Gamma Fits/', pattern = 'params.*18', full.names = T)
 
 
 analyses <- function(params, modelKind = NULL, bestFitting = FALSE, nIterations = 10000){
@@ -56,7 +58,8 @@ analyses <- function(params, modelKind = NULL, bestFitting = FALSE, nIterations 
 
   params %<>%
     mutate(
-      condition = factor(condition),
+      conditionNumeric = condition,
+      condition = factor(condition), #For the model functions
       participant = factor(participant)
     )
   
@@ -75,16 +78,19 @@ analyses <- function(params, modelKind = NULL, bestFitting = FALSE, nIterations 
   
   #Only evparticipantence for an effect of ring
   
-  efficacyPlot = ggplot(params, aes(x=condition, y = efficacy))+
+  efficacyPlot = ggplot(params, aes(x=conditionNumeric, y = efficacy))+
     #geom_violin(position = position_dodge(.9))+
-    geom_point(alpha=1, colour = '#dca951', size = 6)+
+    geom_point(alpha=1, colour = '#ffa951', size = 6)+
     geom_line(aes(group = participant),alpha = .3)+
-    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9),  size = 7, colour = '#23375f')+
+    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9), shape = 23, size = 7, fill = '#23375f')+
     stat_summary(geom= 'errorbar', fun.data = mean_se, position = position_dodge(.9), width = .2, colour = '#23375f')+
     labs(x = "Number of Streams", y = "Efficacy", title = paste0(modelKind, ': Efficacy'))+
+    scale_x_continuous(breaks = c(2,6,18))+
     lims(y = c(0,1))+
     theme_apa(base_size = 30)
 
+  show(efficacyPlot)
+  
   
   results[['Efficacy']] <- list(
     'BF' = efficacyFullAgainstNull,
@@ -109,16 +115,16 @@ analyses <- function(params, modelKind = NULL, bestFitting = FALSE, nIterations 
   BayesFactorLabelOne <- latencyBFOrderedVSNull %>% as.vector %>% round(2) %>% paste0('BF[Ordered~vs~Null]==', .)
   BayesFactorLabelTwo <- latencyBFOrderedVSFull %>% as.vector %>% round(2) %>% paste0('BF[Ordered~vs~No-Order]==', .)
   
-  limits <- c(min(params$latency)-10, max(params$latency)+20)
   
-  latencyPlot <- ggplot(params, aes(x=condition, y = latency))+
+  latencyPlot <- ggplot(params, aes(x=conditionNumeric, y = latency))+
     #geom_violin(position = position_dodge(.9))+
-    geom_point(alpha=1, colour = '#dca951', size = 6)+
+    geom_point(alpha=1, colour = '#ffa951', size = 6)+
     geom_line(aes(group = participant),alpha = .3)+
-    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9),  size = 7, colour = '#23375f')+
+    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9), shape = 23, size = 7, fill = '#23375f')+
     stat_summary(geom= 'errorbar', fun.data = mean_se, position = position_dodge(.9), width = .2, colour = '#23375f')+
     scale_colour_brewer(palette = 'Spectral')+
-    lims(y = limits)+
+    scale_y_continuous(limits = c(-30,300), breaks = seq(0,300,50))+
+    scale_x_continuous(breaks = c(2,6,18))+
     labs(x = 'Number of Streams', y = 'Latency (ms)', title = paste0(modelKind, ': Latency'))+
     theme_apa(base_size = 30)
 
@@ -152,14 +158,15 @@ analyses <- function(params, modelKind = NULL, bestFitting = FALSE, nIterations 
   
   limits <- c(min(params$precision)-10, max(params$precision)+20)
   
-  precisionPlot <- ggplot(params, aes(x=condition, y = precision))+
+  precisionPlot <- ggplot(params, aes(x=conditionNumeric, y = precision))+
     #geom_violin(position = position_dodge(.9))+
-    geom_point(alpha=1, colour = '#dca951', size = 6)+
+    geom_point(alpha=1, colour = '#ffa951', size = 6)+
     geom_line(aes(group = participant),alpha = .3)+
-    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9),  size = 7, colour = '#23375f')+
+    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9), shape = 23, size = 7, fill = '#23375f')+
     stat_summary(geom= 'errorbar', fun.data = mean_se, position = position_dodge(.9), width = .2, colour = '#23375f')+
     scale_colour_brewer(palette = 'Spectral')+
     lims(y = limits)+
+    scale_x_continuous(breaks = c(2,6,18))+
     labs(x = 'Number of Streams', y = 'Precision (ms)', title = paste0(modelKind, ': Precision'))+
     theme_apa(base_size = 30)
 
@@ -387,9 +394,9 @@ normalAnalysis <- analyses(
 plotHeight <-  6.90045
 plotWidth <- 27.67/2
 
-ggsave('~/latencyEighteenStream.png', plot = normalAnalysis$Latency$Plot,height = plotHeight, width = plotWidth, units = 'in')
-ggsave('~/precisionEighteenStream.png', plot = normalAnalysis$Precision$Plot,height = plotHeight, width = plotWidth, units = 'in')
-ggsave('~/efficacyEighteenStream.png', plot = normalAnalysis$Efficacy$Plot,height = plotHeight, width = plotWidth, units = 'in')
+ggsave('Experiment2/Analysis/Gamma Fits/latencyEighteenStream.png', plot = normalAnalysis$Latency$Plot,height = plotHeight, width = plotWidth, units = 'in')
+ggsave('Experiment2/Analysis/Gamma Fits/precisionEighteenStream.png', plot = normalAnalysis$Precision$Plot,height = plotHeight, width = plotWidth, units = 'in')
+ggsave('Experiment2/Analysis/Gamma Fits/efficacyEighteenStream.png', plot = normalAnalysis$Efficacy$Plot,height = plotHeight, width = plotWidth, units = 'in')
 
 
 bestFittingResults <- analyses(
@@ -405,8 +412,8 @@ randPartData <- allData %>% filter(ID %in% randPart)
 randPartDensities <- densities %>% filter(ID %in% randPart)
 
 randomParticipantPlot <- ggplot()+
-  geom_histogram(data = randPartData, aes(x = SPE), binwidth = 1)+
-  geom_line(data = randPartDensities, aes(x = SPE, y = density*50*80, colour = model), size = 1)+
+  geom_histogram(data = randPartData, aes(x = SPE), binwidth = 1, fill = '#FFFFFF', colour = 'black', size = .5)+
+  geom_line(data = randPartDensities, aes(x = SPE, y = density*50*80, linetype = model), size = 1)+
   facet_grid(cols = vars(condition), rows = vars(ID))+
   geom_vline(xintercept = 0, linetype = 'dashed')+
   labs(y = 'Count')+
@@ -414,6 +421,19 @@ randomParticipantPlot <- ggplot()+
 
 randomParticipantPlot
 
-ggsave('~/gitCode/nStream/manuscripts_etc/Manuscript Figures/randomParticipantPlot18.png', randomParticipantPlot, width = 16, height = 9, units = 'in')
+ggsave('Experiment2/Analysis/Gamma Fits/randomParticipantPlot18.png', randomParticipantPlot, width = 16, height = 9, units = 'in')
 
+allResponses = allData %>% 
+  filter(!fixationReject) %>%
+  mutate(condition = paste(condition, 'Streams'))%>%
+  mutate(condition = ordered(condition, levels = paste(c(2,6,18), 'Streams')))%>%
+  ggplot(aes(x = SPE))+
+  geom_histogram(aes(x = SPE), binwidth = 1, size = 1, fill = '#FFFFFF', colour = 'black')+
+  facet_grid(cols = vars(condition))+
+  geom_vline(xintercept = 0, linetype = 'dashed')+
+  labs(y = 'Count')+
+  theme_apa(base_size = 30)
 
+allResponses
+
+ggsave('Experiment2/Analysis/aggregateHistograms.png', allResponses,width = 16, height = 9, units = 'in')

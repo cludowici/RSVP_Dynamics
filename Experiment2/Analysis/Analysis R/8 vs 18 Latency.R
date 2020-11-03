@@ -7,7 +7,7 @@ library(dplyr)
 
 rm(list=ls())
 
-eightParams <- read.csv('Analysis/Gamma Fits/paramsDF8_30-04-2019_12-14.csv')
+eightParams <- read.csv('../Experiment1/Analysis/Gamma Fits/paramsDF8_30-04-2019_12-14.csv')
 eighteenParams <- read.csv('Analysis/Gamma Fits/paramsDF18_25-04-2019_16-04.csv')
 
 #####################

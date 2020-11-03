@@ -3,6 +3,8 @@
 ###Author: Charlie Ludowici####
 ###############################
 #Eighteen Streams Gamma fitting
+setwd('~/gitCode/RSVPDynamics/')
+
 library(ggplot2)
 library(dplyr)
 library(magrittr)
@@ -46,11 +48,11 @@ analyses <- function(params, modelKind = NULL, bestFitting = FALSE, nIterations 
   
   efficacyPlot = ggplot(params, aes(x=condition, y = efficacy))+
     #geom_violin(position = position_dodge(.9))+
-    geom_point(alpha=1, colour = '#dca951', size = 4)+
+    geom_point(alpha=1, colour = '#ffa951', size = 4)+
     geom_line(aes(group = participant),alpha = .3)+
-    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9), size = 4, colour = '#23375f')+
+    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9), shape = 23, size = 4, fill = '#23375f')+
     stat_summary(geom= 'errorbar', fun.data = mean_se, position = position_dodge(.9), width = .2, colour = '#23375f')+
-    labs(x = "Number of Precues", y = "Efficacy [1 - p(guess)]")+
+    labs(x = "Number of Precues", y = "Efficacy")+
     scale_x_discrete(breaks = c('twoStreams', 'eightStreams'), labels = c('2', '8'))+
     lims(y = c(0,1))+
     theme_apa()
@@ -82,9 +84,9 @@ analyses <- function(params, modelKind = NULL, bestFitting = FALSE, nIterations 
   
   latencyPlot <- ggplot(params, aes(x=condition, y = latency))+
     #geom_violin(position = position_dodge(.9))+
-    geom_point(alpha=1, colour = '#dca951', size = 4)+
+    geom_point(alpha=1, colour = '#ffa951', size = 4)+
     geom_line(aes(group = participant),alpha = .3)+
-    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9),size = 4, colour = '#23375f')+
+    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9), shape = 23, size = 4, fill = '#23375f')+
     stat_summary(geom= 'errorbar', fun.data = mean_se, position = position_dodge(.9), width = .2, colour = '#23375f')+
     scale_colour_brewer(palette = 'Spectral')+
     labs(x = 'Number of Precues', y = 'Latency (ms)')+
@@ -117,13 +119,14 @@ analyses <- function(params, modelKind = NULL, bestFitting = FALSE, nIterations 
   
   precisionPlot <- ggplot(params, aes(x=condition, y = precision))+
     #geom_violin(position = position_dodge(.9))+
-    geom_point(alpha=1, colour = '#dca951', size = 4)+
+    geom_point(alpha=1, colour = '#ffa951', size = 4)+
     geom_line(aes(group = participant),alpha = .3)+
-    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9),  size = 4, colour = '#23375f')+
+    stat_summary(geom = 'point', fun.y = mean, position = position_dodge(.9), shape = 23, size = 4, fill = '#23375f')+
     stat_summary(geom= 'errorbar', fun.data = mean_se, position = position_dodge(.9), width = .2, colour = '#23375f')+
     scale_colour_brewer(palette = 'Spectral')+
     labs(x = 'Number of Precues', y = 'Precision (ms)')+
     scale_x_discrete(breaks = c('twoStreams', 'eightStreams'), labels = c('2', '8'))+
+    scale_y_continuous(limits = c(0,230), breaks = seq(0, 200, 50))+
     theme_apa()
   
   results[['Precision']] <- list(
@@ -152,9 +155,7 @@ guessingDistributionBIC <- function(df){
 
 timeStamp <- Sys.time() %>% strftime(format = '%d-%m-%Y_%H-%M')
 
-setwd('~/gitCode/nStream/')
-
-allData <- read.table('Analysis/allErrors.txt', sep = '\t', stringsAsFactors = F, header = T)
+allData <- read.table('Experiment3/Analysis/allErrors.txt', sep = '\t', stringsAsFactors = F, header = T)
 
 allData %<>% rename(SPE = error)
 
@@ -195,7 +196,7 @@ nObs <- allData %>%
 
 nParams <- c('Gamma' = 3, 'Normal' = 3)
 
-paramFiles <- list.files(path = 'Analysis/Gamma Fits',
+paramFiles <- list.files(path = 'Experiment3/Analysis/Gamma Fits',
                          pattern = 'paramsDFPrecue.*csv',
                          full.name = T)
 
@@ -243,7 +244,7 @@ if(length(paramFiles)>0){
     select(participant, condition, BF, favouredModel) %>%
     left_join(paramsDF, ., by = c('participant', 'condition')) #Add all this information to the paramDF 
   
-  paramsFile <- paste0('Analysis/Gamma Fits/paramsDF8_', timeStamp, '.csv')
+  paramsFile <- paste0('Experiment3/Analysis/Gamma Fits/paramsDF8_', timeStamp, '.csv')
   
   write.csv(file = paramsFile,
             x = paramsDF, 
@@ -370,9 +371,9 @@ for(thisID in IDs){
     geom_vline(xintercept = 0, linetype = 'dashed')+
     facet_grid(cols = vars(condition))
   
-  ggsave(filename = paste0('Analysis/Gamma Fits/GammaPlots/8/',thisIDNoSpace,'.png'),
+  ggsave(filename = paste0('Experiment3/Analysis/Gamma Fits/GammaPlots/',thisIDNoSpace,'.png'),
          plot = thisPlot, width = 29.21, height = 12.09, units = 'cm'
-  )
+        )
 } 
 
 #################################
@@ -391,9 +392,22 @@ normalAnalysis <- analyses(paramsDF,modelKind = 'Normal')
 plotHeight <- 19*(9/16)
 plotWidth <- 19
 
-ggsave('plots/efficacy.png', plot = normalAnalysis$Efficacy$Plot,height = plotHeight, width = plotWidth, units = 'cm')
-ggsave('plots/latency.png', plot = normalAnalysis$Latency$Plot,height = plotHeight, width = plotWidth, units = 'cm')
-ggsave('plots/precision.png', plot = normalAnalysis$Precision$Plot,height = plotHeight, width = plotWidth, units = 'cm')
+ggsave('Experiment3/Analysis/Gamma Fits/efficacy.png', plot = normalAnalysis$Efficacy$Plot,height = plotHeight, width = plotWidth, units = 'cm')
+ggsave('Experiment3/Analysis/Gamma Fits/latency.png', plot = normalAnalysis$Latency$Plot,height = plotHeight, width = plotWidth, units = 'cm')
+ggsave('Experiment3/Analysis/Gamma Fits/precision.png', plot = normalAnalysis$Precision$Plot,height = plotHeight, width = plotWidth, units = 'cm')
 
 
+allResponses = allData %>% 
+  filter(!fixationReject) %>%
+  mutate(condition = ifelse(condition == 'twoStreams', 'Two Precues', 'Eight Precues'))%>%
+  mutate(condition = ordered(condition, levels = paste(c('Two', 'Eight'), 'Precues')))%>%
+  ggplot(aes(x = SPE))+
+  geom_histogram(aes(x = SPE), binwidth = 1, size = 1, fill = '#FFFFFF', colour = 'black')+
+  facet_grid(cols = vars(condition))+
+  geom_vline(xintercept = 0, linetype = 'dashed')+
+  labs(y = 'Count')+
+  theme_apa(base_size = 30)
 
+allResponses
+
+ggsave('Experiment3/Analysis/aggregateHistograms.png', allResponses,width = 16, height = 9, units = 'in')
